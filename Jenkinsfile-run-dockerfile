@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        HARBOR_URL = 'harborlab.citigo.net'
+        HARBOR_PROJECT = 'jenkins'
+        IMAGE_NAME = 'pyhon-app'
+        IMAGE_TAG = 'latest'
+        DOCKER_CREDENTIALS_ID = 'harbor_id' // Jenkins credentials ID for Docker
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "cd jenkins-101/s05/python-simple-app/"
+                script {
+                    dockerImage = docker.build("${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('Push Docker Image to Harbor') {
+            steps {
+                script {
+                    docker.withRegistry("https://${HARBOR_URL}", "${DOCKER_CREDENTIALS_ID}") {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('Clean up') {
+            steps {
+                script {
+                    dockerImage.inside {
+                        sh 'docker rmi ${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
