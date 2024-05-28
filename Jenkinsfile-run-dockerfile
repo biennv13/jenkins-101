@@ -33,7 +33,7 @@ pipeline {
                 }
             }
         }
-
+    }
 
     post {
         cleanup {
@@ -42,5 +42,4 @@ pipeline {
             sh 'docker system prune -f'
         }
     }
-  }
 }
