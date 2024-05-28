@@ -4,7 +4,7 @@ pipeline {
         stage('build images') {
             agent {
                 docker { 
-                     image 'python:3-alpine' 
+                     image 'docker:latest' 
                      args '-u root'
                  }
             }
