@@ -8,7 +8,7 @@ pipeline {
     stages { 
         stage('Cloning our Git') { 
             steps { 
-                git clone 'https://github.com/biennv13/jenkins-101.git' 
+               sh "git clone 'https://github.com/biennv13/jenkins-101.git'" 
             }
         } 
         stage('Building our image') { 
