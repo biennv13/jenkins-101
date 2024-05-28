@@ -41,6 +41,6 @@ pipeline {
             sh 'docker logout ${HARBOR_URL}'
             sh 'docker system prune -f'
         }
-        }
     }
+  }
 }
