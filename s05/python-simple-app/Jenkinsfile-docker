@@ -13,7 +13,7 @@ pipeline {
         }
         stage('test') {
             steps {
-                sh 'sleep 60 && curl -s localhost:8000'
+                sh 'sleep 20 && apk --no-cache add curl && curl -s localhost:8000'
             }
         }
         stage('run') {
