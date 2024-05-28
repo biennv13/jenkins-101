@@ -3,10 +3,7 @@ pipeline {
     stages {
         stage('build images') {
             agent {
-                docker { 
-                     image 'docker:latest' 
-                     args '-u root'
-                 }
+                label 'node-1'
             }
             steps {
                 sh 'docker build --tag my-python-app .'
