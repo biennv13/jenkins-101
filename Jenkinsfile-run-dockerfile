@@ -1,64 +1,63 @@
 pipeline {
-    agent any
-
-    environment {
-        HARBOR_URL = 'harborlab.citigo.net'
-        HARBOR_PROJECT = 'jenkins'
-        IMAGE_NAME = 'pyhon-app'
-        IMAGE_TAG = 'latest'
-        DOCKER_CREDENTIALS_ID = 'harbor_id' // Jenkins credentials ID for Docker
-    }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
+        agent any
+    
+        environment {
+            HARBOR_URL = 'harborlab.citigo.net'
+            HARBOR_PROJECT = 'jenkins'
+            IMAGE_NAME = 'pyhon-app'
+            IMAGE_TAG = 'latest'
+            DOCKER_CREDENTIALS_ID = 'harbor_id' // Jenkins credentials ID for Docker
         }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    dockerImage = docker.build("${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}")
+    
+        stages {
+            stage('Checkout') {
+                steps {
+                    checkout scm
                 }
             }
-        }
-
-        stage('Push Docker Image to Harbor') {
-            steps {
-                script {
-                    docker.withRegistry("https://${HARBOR_URL}", "${DOCKER_CREDENTIALS_ID}") {
-                        dockerImage.push()
+    
+            stage('Build Docker Image') {
+                steps {
+                    script {
+                        dockerImage = docker.build("${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}")
+                    }
+                }
+            }
+    
+            stage('Push Docker Image to Harbor') {
+                steps {
+                    script {
+                        docker.withRegistry("https://${HARBOR_URL}", "${DOCKER_CREDENTIALS_ID}") {
+                            dockerImage.push()
+                        }
+                    }
+                }
+            }
+            stage('Pull Docker Image') {
+                steps {
+                    script {
+                        // Pull the Docker image
+                        sh "docker pull ${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    }
+                }
+            }
+    
+            stage('Run Docker Container') {
+                steps {
+                    script {
+                        // Run the Docker container
+                        sh "docker run -d --name ${CONTAINER_NAME} ${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}"
                     }
                 }
             }
         }
-        stage('Pull Docker Image') {
-            steps {
-                script {
-                    // Pull the Docker image
-                    sh "docker pull ${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}"
-                }
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    // Run the Docker container
-                    sh """
-                        docker run -d --name ${CONTAINER_NAME} ${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}
-                    """
-                }
+    
+        post {
+            cleanup {
+                // Cleanup the Docker environment
+                sh 'docker logout ${HARBOR_URL}'
+                sh 'docker system prune -f'
             }
         }
     }
-
-    post {
-        cleanup {
-            // Cleanup the Docker environment
-            sh 'docker logout ${HARBOR_URL}'
-            sh 'docker system prune -f'
-        }
-    }
-}
+    
