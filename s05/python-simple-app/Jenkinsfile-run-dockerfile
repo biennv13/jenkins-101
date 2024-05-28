@@ -1,41 +1,53 @@
-pipeline { 
-    environment { 
-        registry = "YourDockerhubAccount/YourRepository" 
-        registryCredential = 'dockerhub_id' 
-        dockerImage = '' 
+pipeline {
+    agent any
+
+    environment {
+        HARBOR_URL = 'harborlab.citigo.net'
+        HARBOR_PROJECT = 'jenkins'
+        IMAGE_NAME = 'pyhon-app'
+        IMAGE_TAG = 'latest'
+        DOCKER_CREDENTIALS_ID = 'harbor_id' // Jenkins credentials ID for Docker
     }
-    agent any 
-    stages { 
-        stage('Cloning our Git') { 
-            steps { 
-               sh "git clone 'https://github.com/biennv13/jenkins-101.git'" 
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
             }
-        } 
-        stage('Building our image') { 
-            steps { 
-                script { 
-                    // This step should not normally be used in your script. Consult the inline help for details.
-withDockerRegistry(credentialsId: 'harbor_id', url: 'https://harborlab.citigo.net/') {
-    // some block
-}
-                }
-            } 
         }
-        stage('Deploy our image') { 
-            steps { 
-                script { 
-                    docker.withRegistry( '', registryCredential ) { 
-                        dockerImage.push() 
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('Push Docker Image to Harbor') {
+            steps {
+                script {
+                    docker.withRegistry("https://${HARBOR_URL}", "${DOCKER_CREDENTIALS_ID}") {
+                        dockerImage.push()
                     }
-                } 
+                }
             }
-        } 
-        stage('Cleaning up') { 
-            steps { 
-                sh "docker rmi $registry:$BUILD_NUMBER" 
+        }
+
+        stage('Clean up') {
+            steps {
+                script {
+                    dockerImage.inside {
+                        sh 'docker rmi ${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}'
+                    }
+                }
             }
-        } 
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
     }
 }
-
-
