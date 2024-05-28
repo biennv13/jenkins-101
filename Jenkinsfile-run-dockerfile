@@ -33,7 +33,7 @@ pipeline {
                     }
                 }
             }
-
+        }
         post {
             cleanup {
                 // Cleanup the Docker environment
