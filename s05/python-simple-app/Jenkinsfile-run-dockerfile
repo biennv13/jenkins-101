@@ -14,7 +14,10 @@ pipeline {
         stage('Building our image') { 
             steps { 
                 script { 
-                    dockerImage = docker.build registry + ":$BUILD_NUMBER" 
+                    // This step should not normally be used in your script. Consult the inline help for details.
+withDockerRegistry(credentialsId: 'harbor_id', url: 'https://harborlab.citigo.net/') {
+    // some block
+}
                 }
             } 
         }
