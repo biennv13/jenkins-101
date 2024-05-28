@@ -11,7 +11,11 @@ pipeline {
                 sh 'pip3 install -r s05/python-simple-app/requirements.txt'
             }
         }
-
+        stage('test') {
+            steps {
+                sh 'sleep 60 && curl -s localhost:8000'
+            }
+        }
         stage('run') {
             steps {
                 sh 'python3 s05/python-simple-app/app.py &'
