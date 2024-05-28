@@ -9,7 +9,7 @@ pipeline {
                  }
             }
             steps {
-                sh 'pip3 install -r s05/python-simple-app/requirements.txt'
+                sh 'docker build --tag my-python-app .'
             }
         }
         stage('run') {
