@@ -34,20 +34,13 @@ pipeline {
             }
         }
 
-        stage('Clean up') {
-            steps {
-                script {
-                    dockerImage.inside {
-                        sh 'docker rmi ${HARBOR_URL}/${HARBOR_PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}'
-                    }
-                }
-            }
-        }
-    }
 
     post {
-        always {
-            cleanWs()
+        cleanup {
+            // Cleanup the Docker environment
+            sh 'docker logout ${HARBOR_URL}'
+            sh 'docker system prune -f'
+        }
         }
     }
 }
