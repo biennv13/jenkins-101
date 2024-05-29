@@ -20,6 +20,7 @@ pipeline {
         stage('version') {
             steps {
                 sh 'python -V'
+                sh 'sleep 50'
             }
         }
     }
